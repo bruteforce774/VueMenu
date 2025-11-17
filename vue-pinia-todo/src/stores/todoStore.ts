@@ -73,20 +73,30 @@ export const useTodoStore = defineStore('todos', () => {
   }
 
   // Asynkron action – typisk for API-kall
-  async function fetchTodosFromServer() {
-    try {
-      isLoading.value = true
+async function fetchTodosFromServer() {
+  try {
+    isLoading.value = true
 
-      // Fiktivt API-kall – bytt ut med ekte
-      const response = await fakeApiCall()
+    const response = await fetch('https://jsonplaceholder.typicode.com/todos?_limit=5')
 
-      todos.value = response
-    } catch (error) {
-      console.error('Klarte ikke å hente todos', error)
-    } finally {
-      isLoading.value = false
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
     }
+
+    const data = await response.json()
+
+    todos.value = data.map((item: any) => ({
+      id: item.id,
+      text: item.title,
+      done: item.completed,
+    }))
+
+  } catch (error) {
+    console.error('Klarte ikke å hente todos', error)
+  } finally {
+    isLoading.value = false
   }
+}
 
   // Returnerer ting som skal være tilgjengelig utenfra
   return {
